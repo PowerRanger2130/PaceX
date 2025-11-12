@@ -1,0 +1,25 @@
+1. Telephely
+EtherChannel
+HSRP
+ASA
+VLANok
+IPv6 címzés
+VPN -> 2. Telephely
+
+2. Telephely
+Windows Server
+- AD
+- DNS
+- Szoftvertelepítés
+Linux Server
+- HTTPS
+- FTP
+NAT (PAT)
+VPN -> 1. Telephely
+
+
+3. Telephely
+Wifi
+
+4. Telephely
+IOT

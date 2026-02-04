@@ -1,2 +1,2 @@
 # PaceX
-Kano project
+Kando project

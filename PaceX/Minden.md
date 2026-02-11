@@ -6,3 +6,5 @@
  switchport port-security maximum 5
  switchport port-security mac-address sticky
  switchport port-security violation shutdown
+
+Minőségbiztosítás? -- TODO

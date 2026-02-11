@@ -1,0 +1,77 @@
+[
+    {
+        "trackingNumber": "GLS123456789",
+        "recipientName": "Alice",
+        "status": "In Transit",
+        "lastUpdate": "2026-01-05T15:22:00Z",
+        "origin": "Budapest, HU",
+        "destination": "Vienna, AT",
+        "events": [
+            {
+                "time": "2026-01-03T08:00:00Z",
+                "location": "Budapest Hub",
+                "message": "Parcel registered"
+            },
+            {
+                "time": "2026-01-04T10:40:00Z",
+                "location": "Budapest Hub",
+                "message": "Parcel sorted"
+            },
+            {
+                "time": "2026-01-05T15:22:00Z",
+                "location": "Győr Depot",
+                "message": "Departed facility"
+            }
+        ]
+    },
+    {
+        "trackingNumber": "GLS987654321",
+        "recipientName": "Bob",
+        "status": "Out for Delivery",
+        "lastUpdate": "2026-01-07T07:15:00Z",
+        "origin": "Prague, CZ",
+        "destination": "Brno, CZ",
+        "events": [
+            {
+                "time": "2026-01-05T09:00:00Z",
+                "location": "Prague Hub",
+                "message": "Parcel received"
+            },
+            {
+                "time": "2026-01-06T18:20:00Z",
+                "location": "Brno Depot",
+                "message": "Arrived at delivery depot"
+            },
+            {
+                "time": "2026-01-07T07:15:00Z",
+                "location": "Brno",
+                "message": "Courier out for delivery"
+            }
+        ]
+    },
+    {
+        "trackingNumber": "GLS555111222",
+        "recipientName": "Carol",
+        "status": "Delivered",
+        "lastUpdate": "2026-01-02T12:30:00Z",
+        "origin": "Graz, AT",
+        "destination": "Linz, AT",
+        "events": [
+            {
+                "time": "2025-12-31T16:10:00Z",
+                "location": "Graz",
+                "message": "Parcel picked up"
+            },
+            {
+                "time": "2026-01-01T11:45:00Z",
+                "location": "Linz Depot",
+                "message": "Arrived at delivery depot"
+            },
+            {
+                "time": "2026-01-02T12:30:00Z",
+                "location": "Linz",
+                "message": "Delivered to recipient"
+            }
+        ]
+    }
+]

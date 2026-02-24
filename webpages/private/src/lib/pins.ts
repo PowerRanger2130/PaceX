@@ -2,7 +2,7 @@ import { getToken } from './auth'
 
 export type DoorPins = { [door: number]: string }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.104:8000'
+const API_URL = import.meta.env.VITE_API_URL || 'http://api.pacex.hu'
 
 export async function fetchPins(): Promise<DoorPins> {
     const token = getToken()

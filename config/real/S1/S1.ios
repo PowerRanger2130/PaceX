@@ -1,0 +1,7 @@
+ ! EtherCannel
+interface range FastEthernet0/11 - 12
+ channel-group 1 mode desirable
+ no shutdown
+
+interface Port-channel 1
+ switchport mode trunk

@@ -1,7 +1,47 @@
- ! EtherCannel
-interface range FastEthernet0/11 - 12
+hostname S1Sw2
+
+ip default-gateway 192.168.81.1
+
+interface range GigabitEthernet1/0/11 - 12
  channel-group 1 mode desirable
  no shutdown
+ exit
 
 interface Port-channel 1
  switchport mode trunk
+ no shutdown
+ exit
+ ! Towards router
+interface GigabitEthernet1/0/1
+ switchport mode trunk
+ exit
+
+ ! End devices
+interface range GigabitEthernet1/0/2 - 10, GigabitEthernet1/0/13 - 23
+ switchport access vlan 20
+ switchport mode access
+ switchport port-security
+ switchport port-security maximum 5
+ switchport port-security mac-address sticky
+ exit
+
+ ! Server
+interface GigabitEthernet1/0/24
+ switchport mode access
+ switchport access vlan 99
+ exit
+
+ ! VLANs
+vlan 10
+ name Emelet1
+vlan 20
+ name Emelet2
+vlan 81
+ name Management
+
+interface vlan 81
+ no shutdown
+ ip address 192.168.81.4 255.255.255.224
+
+vlan 99
+ name Server

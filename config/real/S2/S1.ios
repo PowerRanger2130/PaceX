@@ -1,0 +1,22 @@
+hostname S2Sw1
+
+ip default-gateway 192.168.82.1
+
+! VLANs
+vlan 82
+ name Management
+
+interface vlan 82
+ no shutdown
+ ip address 192.168.82.2 255.255.255.224
+
+vlan 199
+ name Server
+
+interface GigabitEthernet1/0/1
+ no shutdown
+ switchport mode trunk
+
+interface GigabitEthernet1/0/24
+ switchport mode access
+ switchport access vlan 199

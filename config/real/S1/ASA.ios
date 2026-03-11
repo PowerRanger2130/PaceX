@@ -1,0 +1,15 @@
+hostname S1Asa
+
+interface GigabitEthernet0/1
+ no shutdown
+
+interface GigabitEthernet0/2
+ no shutdown
+
+interface GigabitEthernet0/2.81
+ vlan 81
+ nameif mgmt
+ security-level 100
+ ip address 192.168.81.5 255.255.255.224
+
+route mgmt 0.0.0.0 0.0.0.0 192.168.81.1 1

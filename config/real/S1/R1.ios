@@ -4,47 +4,67 @@ ip routing
 
 interface GigabitEthernet0/0/1
  no shutdown
+ ip address dhcp
+ ip nat outside
 
  ! ================= VLAN 10 =================
 interface GigabitEthernet0/0/0.10
  encapsulation dot1Q 10
  ip address 192.168.10.2 255.255.255.0
+ ip nat inside
  standby 10 ip 192.168.10.1
  standby 10 priority 100
  standby 10 preempt
+ ip access-group VLAN10_IN in
+ ip helper-address 192.168.99.254
+ ip dhcp relay information trusted
 
  ! ================= VLAN 20 =================
 interface GigabitEthernet0/0/0.20
  encapsulation dot1Q 20
  ip address 192.168.20.2 255.255.255.0
+ ip nat inside
  standby 20 ip 192.168.20.1
  standby 20 priority 100
  standby 20 preempt
+ ip access-group VLAN20_IN in
+ ip helper-address 192.168.99.254
+ ip dhcp relay information trusted
 
- ! =========== VLAN 88 (Management) ===========
-interface GigabitEthernet0/0/0.88
- encapsulation dot1Q 88
- ip address 192.168.88.1 255.255.255.0
+ ! =========== VLAN 81 (Management) ===========
+interface GigabitEthernet0/0/0.81
+ encapsulation dot1Q 81
+ ip address 192.168.81.1 255.255.255.224
+ ip nat inside
+ ip access-group VLAN81_IN in
+ ip helper-address 192.168.99.254
+ ip dhcp relay information trusted
 
  ! ================= VLAN 99 =================
 interface GigabitEthernet0/0/0.99
  encapsulation dot1Q 99
  ip address 192.168.99.2 255.255.255.0
+ ip nat inside
  standby 99 ip 192.168.99.1
  standby 99 priority 100
  standby 99 preempt
+ ip access-group VLAN99_IN in
+ ip helper-address 192.168.99.254
+ ip dhcp relay information trusted
 
  ! S2R1
 int tun 0
  ip addr 10.0.1.1 255.255.255.252
  tun sour g0/0/1
- tun dest 203.0.113.14
+ ! Tunnel to S2R1
+ tun dest 10.224.55.35
 
  ! S3R1
 int tun 1
  ip addr 10.0.2.1 255.255.255.252
  tun sour g0/0/1
- tun dest 203.0.113.22
+ ! Tunnel to S3R1
+ tun dest 10.224.55.36
 
  ! BGP
 router bgp 65001
@@ -54,18 +74,58 @@ router bgp 65001
  neighbor 10.0.2.2 remote-as 65003
  network 192.168.10.0
  network 192.168.20.0
+ network 192.168.81.0 mask 255.255.255.224
  network 192.168.99.0
 
-ip domain-name gls.local
+ip domain name gls.local
 
 crypto key generate rsa modulus 2048
 ip ssh version 2
 
 username class privilege 15 secret cisco
 
+ip nat inside source list NAT_INSIDE interface GigabitEthernet0/0/1 overload
+
+ ! ACL
+ip access-list standard NAT_INSIDE
+ permit 192.168.10.0 0.0.0.255
+ permit 192.168.20.0 0.0.0.255
+ permit 192.168.81.0 0.0.0.31
+ permit 192.168.99.0 0.0.0.255
+
+ip access-list extended VLAN10_IN
+ deny ip 192.168.10.0 0.0.0.255 192.168.81.0 0.0.0.31
+ deny ip 192.168.10.0 0.0.0.255 192.168.82.0 0.0.0.31
+ deny ip 192.168.10.0 0.0.0.255 192.168.83.0 0.0.0.31
+ permit ip any any
+
+ip access-list extended VLAN20_IN
+ deny ip 192.168.20.0 0.0.0.255 192.168.81.0 0.0.0.31
+ deny ip 192.168.20.0 0.0.0.255 192.168.82.0 0.0.0.31
+ deny ip 192.168.20.0 0.0.0.255 192.168.83.0 0.0.0.31
+ permit ip any any
+
+ip access-list extended VLAN99_IN
+ deny ip 192.168.99.0 0.0.0.255 192.168.81.0 0.0.0.31
+ deny ip 192.168.99.0 0.0.0.255 192.168.82.0 0.0.0.31
+ deny ip 192.168.99.0 0.0.0.255 192.168.83.0 0.0.0.31
+ permit ip any any
+
+ip access-list extended VLAN81_IN
+ permit ip 192.168.81.0 0.0.0.31 192.168.82.0 0.0.0.31
+ permit ip 192.168.81.0 0.0.0.31 192.168.83.0 0.0.0.31
+ deny ip 192.168.81.0 0.0.0.31 any
+ permit ip any any
+
+ip access-list standard MGMT
+ permit 192.168.81.0 0.0.0.31
+ permit 192.168.82.0 0.0.0.31
+ permit 192.168.83.0 0.0.0.31
+
 line vty 0 4
  transport input ssh
  login local
  exec-timeout 10 0
+ access-class MGMT in
 
 service password-encryption

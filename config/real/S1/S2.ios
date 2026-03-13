@@ -43,5 +43,16 @@ interface vlan 81
  no shutdown
  ip address 192.168.81.4 255.255.255.224
 
+ip domain name gls.local
+
+crypto key generate rsa modulus 2048
+ip ssh version 2
+
+username class privilege 15 secret cisco
+
+line vty 0 4
+ login local
+ transport input ssh
+
 vlan 99
  name Server

@@ -36,7 +36,6 @@ interface GigabitEthernet0/0/0.81
  encapsulation dot1Q 81
  ip address 192.168.81.1 255.255.255.224
  ip nat inside
- ip access-group VLAN81_IN in
  ip helper-address 192.168.99.254
  ip dhcp relay information trusted
 
@@ -48,7 +47,6 @@ interface GigabitEthernet0/0/0.99
  standby 99 ip 192.168.99.1
  standby 99 priority 100
  standby 99 preempt
- ip access-group VLAN99_IN in
  ip helper-address 192.168.99.254
  ip dhcp relay information trusted
 
@@ -103,18 +101,6 @@ ip access-list extended VLAN20_IN
  deny ip 192.168.20.0 0.0.0.255 192.168.81.0 0.0.0.31
  deny ip 192.168.20.0 0.0.0.255 192.168.82.0 0.0.0.31
  deny ip 192.168.20.0 0.0.0.255 192.168.83.0 0.0.0.31
- permit ip any any
-
-ip access-list extended VLAN99_IN
- deny ip 192.168.99.0 0.0.0.255 192.168.81.0 0.0.0.31
- deny ip 192.168.99.0 0.0.0.255 192.168.82.0 0.0.0.31
- deny ip 192.168.99.0 0.0.0.255 192.168.83.0 0.0.0.31
- permit ip any any
-
-ip access-list extended VLAN81_IN
- permit ip 192.168.81.0 0.0.0.31 192.168.82.0 0.0.0.31
- permit ip 192.168.81.0 0.0.0.31 192.168.83.0 0.0.0.31
- deny ip 192.168.81.0 0.0.0.31 any
  permit ip any any
 
 ip access-list standard MGMT

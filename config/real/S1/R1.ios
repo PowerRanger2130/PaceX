@@ -51,18 +51,18 @@ interface GigabitEthernet0/0/0.99
  ip dhcp relay information trusted
 
  ! S2R1
-int tun 0
- ip addr 10.0.1.1 255.255.255.252
- tun sour g0/0/1
+int tunnel 0
+ ip address 10.0.1.1 255.255.255.252
+ tunnel source GigabitEthernet0/0/1
  ! Tunnel to S2R1
- tun dest 10.224.55.35
+ tunnel destination 10.224.55.35
 
  ! S3R1
-int tun 1
- ip addr 10.0.2.1 255.255.255.252
- tun sour g0/0/1
+int tunnel 1
+ ip address 10.0.2.1 255.255.255.252
+ tunnel source GigabitEthernet0/0/1
  ! Tunnel to S3R1
- tun dest 10.224.55.36
+ tunnel destination 10.224.55.36
 
  ! BGP
 router bgp 65001

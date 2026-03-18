@@ -4,7 +4,6 @@ import argparse
 import re
 from pathlib import Path
 
-
 # Keep these public IPs up to date.
 # Key format: <SiteRouter>, for example: S1R1, S2R2, S3R1
 PUBLIC_IPS: dict[str, str] = {
@@ -13,7 +12,6 @@ PUBLIC_IPS: dict[str, str] = {
 	"S2R1": "10.224.55.35",
 	"S3R1": "10.224.55.36",
 }
-
 
 TUNNEL_DEST_RE = re.compile(
 	r"^(?P<prefix>\s*(?:tun(?:nel)?\s+dest(?:ination)?)\s+)"

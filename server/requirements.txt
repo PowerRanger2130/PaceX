@@ -1,0 +1,5 @@
+  fastapi
+  uvicorn[standard]
+  SQLAlchemy
+  PyJWT
+psycopg2-binary

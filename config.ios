@@ -1,0 +1,47 @@
+config:
+T1:
+
+Sw1:
+vlanok (10, 20, 80, 99)
+G0/1 trunk
+f0/11-12 PAGP
+minden port kivéve g0/1, f0/1, f0/11-12 és f0/24 access vlan 10 és portsec
+int vlan 80, ip 192.168.80.3
+
+Sw2:
+vlanok (10, 20, 80, 99)
+G0/1 trunk
+f0/11-12 PAGP
+minden port kivéve g0/1, f0/1, f0/11-12 és f0/24 access vlan 20 és portsec
+int vlan 80, ip 192.168.80.4
+
+R1:
+subneteken IPk:
+vl10: 192.168.10.2/24 (HSRP 192.168.10.1/24)
+vl20: 192.168.20.2/24 (HSRP 20.1/24)
+vl80: 192.168.80.1/27
+vl99: 192.168.99.2/24 (HSRP .99.1)
+HSRP prio 110, preempt
+interfaceken: ip dhcp relay information trust
+
+R2:
+subneteken IPk:
+vl10: 192.168.10.3/24 (HSRP 192.168.10.1/24)
+vl20: 192.168.20.3/24 (HSRP 20.1/24)
+vl80: 192.168.80.2/27
+vl99: 192.168.99.3/24 (HSRP .99.1)
+HSRP prio 110, preempt
+interfaceken: ip dhcp relay information trust
+
+ASA1:
+ACL-1:
+origin vlan 10 dest vlan 20 deny
+original vlan 20 dest vlan 10 deny
+permit any any
+int g0/2.80 ip 192.168.80.5/24
+no sh g0/1 és 0/2n
+
+ASA2:
+ASA1 megegyezik
+int g0/2.80 ip 192.168.80.6/24
+no sh g0/1 és 0/2n

@@ -1,0 +1,32 @@
+hostname S2Sw1
+
+ip default-gateway 192.168.82.1
+
+! VLANs
+vlan 82
+ name Management
+vlan 199
+ name Server
+
+interface GigabitEthernet1/0/1
+ no shutdown
+ switchport mode trunk
+
+interface GigabitEthernet1/0/24
+ switchport mode access
+ switchport access vlan 199
+
+interface vlan 82
+ no shutdown
+ ip address 192.168.82.2 255.255.255.224
+
+ip domain name gls.local
+
+crypto key generate rsa modulus 2048
+ip ssh version 2
+
+username class privilege 15 secret cisco
+
+line vty 0 4
+ login local
+ transport input ssh

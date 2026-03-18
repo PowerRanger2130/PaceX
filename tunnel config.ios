@@ -1,0 +1,114 @@
+ !S1
+ ! R1
+ !  S1R1 to S2R1
+no int tun 0
+no int tun 1
+int tun 0
+ip addr 10.0.1.1 255.255.255.252
+tun sour g0/0/0
+tun dest 203.0.113.14
+ ! BGP
+no router bgp 65001
+router bgp 65001
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 10.0.1.2 remote-as 65002
+ neighbor 10.0.2.2 remote-as 65003
+ network 192.168.10.0
+ network 192.168.20.0
+ network 192.168.99.0
+
+ !  S1R1 to S3R1
+int tun 1
+ip addr 10.0.2.1 255.255.255.252
+tun sour g0/0/0
+tun dest 203.0.113.22
+
+ ! R2
+ !  S1R2 to S2R2
+no int tun 0
+no int tun 1
+int tun 0
+ip addr 10.0.1.5 255.255.255.252
+tun sour g0/0/0
+tun dest 203.0.113.18
+ !  S1R2 to S3R2
+int tun 1
+ip addr 10.0.2.5 255.255.255.252
+tun sour g0/0/0
+tun dest 203.0.113.26
+ ! BGP
+no router bgp 65001
+router bgp 65001
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 10.0.1.6 remote-as 65002
+ neighbor 10.0.2.6 remote-as 65003
+ network 192.168.10.0
+ network 192.168.20.0
+ network 192.168.99.0
+
+ !S2
+ ! R1
+ !  S2R1 to S1R1
+no int tun 0
+no int tun 1
+int tun 0
+ip addr 10.0.1.2 255.255.255.252
+tun sour f0/0
+tun dest 203.0.113.6
+ ! BGP
+no router bgp 65002
+router bgp 65002
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 10.0.1.1 remote-as 65001
+ network 192.168.199.0
+
+ ! R2
+ !  S2R2 to S1R2
+no int tun 0
+no int tun 1
+int tun 0
+ip addr 10.0.1.6 255.255.255.252
+tun sour f0/0
+tun dest 203.0.113.10
+ ! BGP
+no router bgp 65002
+router bgp 65002
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 10.0.1.5 remote-as 65001
+ network 192.168.199.0
+
+ !S3
+ ! R1
+ !  S3R1 to S1R1
+no int tun 0
+no int tun 1
+int tun 1
+ip addr 10.0.2.2 255.255.255.252
+tun sour f0/0
+tun dest 203.0.113.6
+ ! BGP
+no router bgp 65003
+router bgp 65003
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 10.0.2.1 remote-as 65001
+ network 192.168.32.0
+
+ ! R2
+ !  S3R2 to S1R2
+no int tun 0
+no int tun 1
+int tun 1
+ip addr 10.0.2.6 255.255.255.252
+tun sour f0/0
+tun dest 203.0.113.10
+ ! BGP
+no router bgp 65003
+router bgp 65003
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 10.0.2.5 remote-as 65001

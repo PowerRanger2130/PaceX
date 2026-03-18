@@ -1,69 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
-import type { DoorPins } from '@/lib/pins'
-import { fetchPins, savePins, defaultPins } from '@/lib/pins'
-import { Package, Lock, LockOpen } from 'lucide-react'
+import { defaultPins, pinForDoor } from '@/lib/pins'
+import { Package, Lock } from 'lucide-react'
 
 export default function Pins() {
-    const [pins, setPinsState] = useState<DoorPins>({})
-    const [originalPins, setOriginalPins] = useState<DoorPins>({})
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
+    const pins = useMemo(() => defaultPins(), [])
     const [selectedDoor, setSelectedDoor] = useState<number | null>(null)
-    const inputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({})
-
-    useEffect(() => {
-        loadPins()
-    }, [])
 
     function selectDoor(door: number) {
         setSelectedDoor(door)
-        // Focus and select the input after a brief delay to ensure state is updated
-        setTimeout(() => {
-            const input = inputRefs.current[door]
-            if (input) {
-                input.focus()
-                input.select()
-            }
-        }, 0)
-    }
-
-    async function loadPins() {
-        setLoading(true)
-        try {
-            const data = await fetchPins()
-            setPinsState(data)
-            setOriginalPins(data)
-        } catch (err) {
-            toast.error('PIN kódok betöltése sikertelen', { description: 'Alapértelmezett értékek használata.' })
-            const defaults = defaultPins()
-            setPinsState(defaults)
-            setOriginalPins(defaults)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    function updatePin(door: number, value: string) {
-        setPinsState(prev => ({ ...prev, [door]: value.replace(/\D/g, '').slice(0, 8) }))
-    }
-
-    async function save() {
-        setSaving(true)
-        try {
-            const updated = await savePins(pins)
-            setPinsState(updated)
-            setOriginalPins(updated)
-            toast.success('PIN kódok mentve', { description: 'Adatbázisban tárolva.' })
-        } catch (err) {
-            toast.error('PIN kódok mentése sikertelen')
-        } finally {
-            setSaving(false)
-        }
     }
 
     return (
@@ -73,11 +19,11 @@ export default function Pins() {
                 {/* PIN Management */}
                 <Card className="border shadow-lg">
                     <CardHeader>
-                        <CardTitle>Ajtó PIN kódok kezelése</CardTitle>
+                        <CardTitle>Ajtó PIN kódok</CardTitle>
                         <CardDescription>
                             {selectedDoor
-                                ? `${selectedDoor}. ajtó PIN kódjának szerkesztése`
-                                : 'Adja meg az egyes ajtók hozzáférési PIN kódját (1–8).'}
+                                ? `${selectedDoor}. ajtó PIN kódja: ${pinForDoor(selectedDoor)}`
+                                : 'Fix szabály: PIN = ajtószám 4x (1111 ... 8888).'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -94,7 +40,7 @@ export default function Pins() {
                                         `}
                                         onClick={() => selectDoor(door)}
                                     >
-                                        <Label htmlFor={`door-${door}`} className="flex items-center gap-2 text-sm cursor-pointer">
+                                        <div className="flex items-center gap-2 text-sm">
                                             <span className={`
                                                 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center
                                                 ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}
@@ -102,33 +48,17 @@ export default function Pins() {
                                                 {door}
                                             </span>
                                             {door}. ajtó
-                                        </Label>
-                                        <Input
-                                            ref={(el) => { inputRefs.current[door] = el }}
-                                            id={`door-${door}`}
-                                            value={pins[door] ?? ''}
-                                            onChange={e => updatePin(door, e.target.value)}
-                                            placeholder="4-8 számjegy"
-                                            inputMode="numeric"
-                                            pattern="\\d*"
-                                            className={`h-9 ${isSelected ? 'border-primary' : ''}`}
-                                            onFocus={() => setSelectedDoor(door)}
-                                        />
+                                        </div>
+                                        <div className={`h-9 rounded-md border px-3 flex items-center font-mono tracking-[0.35em] ${isSelected ? 'border-primary' : 'border-input'}`}>
+                                            {pins[door]}
+                                        </div>
                                     </div>
                                 )
                             })}
                         </div>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            <Button size="sm" onClick={save} disabled={saving || loading}>
-                                {saving ? 'Mentés...' : 'Mentés'}
-                            </Button>
-                            <Button size="sm" variant="secondary" onClick={() => { setPinsState(originalPins); toast('Utoljára mentett értékek visszaállítva') }} disabled={loading}>
-                                Visszaállítás
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={loadPins} disabled={loading}>
-                                {loading ? 'Betöltés...' : 'Frissítés'}
-                            </Button>
-                        </div>
+                        <Button size="sm" variant="outline" className="mt-4" onClick={() => setSelectedDoor(null)}>
+                            Kijelölés törlése
+                        </Button>
                     </CardContent>
                 </Card>
 
@@ -139,7 +69,7 @@ export default function Pins() {
                             <Package className="h-5 w-5 text-primary" />
                             Csomagautomata
                         </CardTitle>
-                        <CardDescription className="text-sm">Kattintson egy ajtóra a PIN szerkesztéséhez</CardDescription>
+                        <CardDescription className="text-sm">Kattintson egy ajtóra a PIN megtekintéséhez</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg p-3 shadow-inner">
@@ -147,7 +77,6 @@ export default function Pins() {
                             <div className="grid grid-cols-4 gap-2">
                                 {Array.from({ length: 8 }).map((_, i) => {
                                     const door = i + 1
-                                    const hasPin = !!pins[door]
                                     const isSelected = selectedDoor === door
                                     return (
                                         <button
@@ -158,9 +87,7 @@ export default function Pins() {
                                                 flex flex-col items-center justify-center
                                                 ${isSelected
                                                     ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(var(--primary),0.4)] scale-105'
-                                                    : hasPin
-                                                        ? 'bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600'
-                                                        : 'bg-gray-800 border-gray-700 hover:border-gray-600 hover:bg-gray-700'
+                                                    : 'bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600'
                                                 }
                                             `}
                                         >
@@ -174,16 +101,12 @@ export default function Pins() {
                                             </div>
 
                                             {/* Lock icon */}
-                                            {hasPin ? (
-                                                <Lock className={`h-5 w-5 ${isSelected ? 'text-primary' : 'text-gray-400'}`} />
-                                            ) : (
-                                                <LockOpen className="h-4 w-4 text-gray-500" />
-                                            )}
+                                            <Lock className={`h-5 w-5 ${isSelected ? 'text-primary' : 'text-gray-400'}`} />
 
                                             {/* Status indicator */}
                                             <div className={`
                                                 absolute bottom-1 right-1 w-2 h-2 rounded-full
-                                                ${hasPin ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}
+                                                bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]
                                             `} />
                                         </button>
                                     )
@@ -194,11 +117,7 @@ export default function Pins() {
                             <div className="mt-3 flex items-center justify-center gap-4 text-xs text-gray-400">
                                 <div className="flex items-center gap-1">
                                     <div className="w-2 h-2 rounded-full bg-green-500" />
-                                    <span>PIN beállítva</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <div className="w-2 h-2 rounded-full bg-gray-500" />
-                                    <span>Nincs PIN</span>
+                                    <span>Fix PIN (1111–8888)</span>
                                 </div>
                             </div>
                         </div>

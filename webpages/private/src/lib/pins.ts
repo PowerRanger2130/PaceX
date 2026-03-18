@@ -1,66 +1,12 @@
-import { getToken } from './auth'
-
 export type DoorPins = { [door: number]: string }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://api.pacex.hu'
+const DOOR_COUNT = 8
 
-export async function fetchPins(): Promise<DoorPins> {
-    const token = getToken()
-    const res = await fetch(`${API_URL}/pins`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
-    })
-    if (!res.ok) {
-        throw new Error('Failed to fetch PINs')
+export function pinForDoor(door: number): string {
+    if (door < 1 || door > DOOR_COUNT) {
+        throw new Error(`Door must be between 1 and ${DOOR_COUNT}`)
     }
-    const data = await res.json()
-    // Convert string keys to number keys
-    const pins: DoorPins = {}
-    for (const [door, pin] of Object.entries(data.pins)) {
-        pins[Number(door)] = pin as string
-    }
-    return pins
-}
-
-export async function savePins(pins: DoorPins): Promise<DoorPins> {
-    const token = getToken()
-    // Convert number keys to string keys for API
-    const pinsPayload: { [key: string]: string } = {}
-    for (const [door, pin] of Object.entries(pins)) {
-        pinsPayload[String(door)] = pin
-    }
-    const res = await fetch(`${API_URL}/pins`, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pins: pinsPayload }),
-    })
-    if (!res.ok) {
-        throw new Error('Failed to save PINs')
-    }
-    const data = await res.json()
-    const result: DoorPins = {}
-    for (const [door, pin] of Object.entries(data.pins)) {
-        result[Number(door)] = pin as string
-    }
-    return result
-}
-
-export async function verifyPin(pin: string): Promise<{ valid: boolean; door: number | null }> {
-    const res = await fetch(`${API_URL}/pins/verify`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pin }),
-    })
-    if (!res.ok) {
-        throw new Error('Failed to verify PIN')
-    }
-    return res.json()
+    return String(door).repeat(4)
 }
 
 export function defaultPins(): DoorPins {
@@ -74,4 +20,32 @@ export function defaultPins(): DoorPins {
         7: '7777',
         8: '8888',
     }
+}
+
+export async function fetchPins(): Promise<DoorPins> {
+    return defaultPins()
+}
+
+export async function savePins(pins: DoorPins): Promise<DoorPins> {
+    void pins
+    return defaultPins()
+}
+
+export async function verifyPin(pin: string): Promise<{ valid: boolean; door: number | null }> {
+    const normalized = pin.replace(/\D/g, '').slice(0, 4)
+    if (normalized.length !== 4) {
+        return { valid: false, door: null }
+    }
+
+    const first = normalized[0]
+    if (![...normalized].every((digit) => digit === first)) {
+        return { valid: false, door: null }
+    }
+
+    const door = Number(first)
+    if (!Number.isInteger(door) || door < 1 || door > DOOR_COUNT) {
+        return { valid: false, door: null }
+    }
+
+    return { valid: normalized === pinForDoor(door), door }
 }

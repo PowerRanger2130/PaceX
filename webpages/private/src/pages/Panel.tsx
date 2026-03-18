@@ -4,12 +4,16 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { verifyPin } from '@/lib/pins'
+import { iotManagement, type RelayState } from '@/lib/iot'
 import { Package, Lock, LockOpen, Loader2 } from 'lucide-react'
 
 export default function Panel() {
     const [entered, setEntered] = useState('')
     const [verifying, setVerifying] = useState(false)
     const [openDoor, setOpenDoor] = useState<number | null>(null)
+    const [activeDoor, setActiveDoor] = useState<number | null>(null)
+    const [pulseState, setPulseState] = useState<RelayState | null>(null)
+    const [pulseCycle, setPulseCycle] = useState(0)
 
     const keypad = useMemo(() => ['1', '2', '3', '4', '5', '6', '7', '8', '9', '←', '0', '✓'], [])
 
@@ -20,30 +24,51 @@ export default function Panel() {
         } else if (key === '✓') {
             submit()
         } else {
-            setEntered(prev => (prev + key).slice(0, 8))
+            setEntered(prev => (prev + key).slice(0, 4))
         }
     }
 
     async function submit() {
         if (!entered) return
+        if (entered.length !== 4) {
+            toast.error('A PIN kód pontosan 4 számjegy legyen')
+            return
+        }
+
         setVerifying(true)
         setOpenDoor(null)
+        setActiveDoor(null)
+        setPulseState(null)
+        setPulseCycle(0)
+
         try {
             const result = await verifyPin(entered)
             if (result.valid && result.door) {
+                await iotManagement(result.door, ({ door, cycle, state }) => {
+                    setActiveDoor(door)
+                    setPulseCycle(cycle)
+                    setPulseState(state)
+                })
+
+                setActiveDoor(null)
+                setPulseState(null)
+                setPulseCycle(0)
                 setOpenDoor(result.door)
-                console.log(`Open door ${result.door} (PIN ${entered})`)
-                toast.success(`${result.door}. ajtó kinyitva`, { description: 'A szimulált művelet megtekinthető a konzolon.' })
-                // Auto-close after 5 seconds
+                toast.success(`${result.door}. ajtó kinyitva`, {
+                    description: 'IOT management lefutott (3 kattintás: 1s be / 1s ki).',
+                })
                 setTimeout(() => setOpenDoor(null), 5000)
             } else {
                 toast.error('Érvénytelen PIN kód')
             }
-        } catch (err) {
-            toast.error('Ellenőrzés sikertelen', { description: 'Nem sikerült kapcsolódni a szerverhez.' })
+        } catch {
+            toast.error('IOT művelet sikertelen', { description: 'A relé vezérlése nem futott le.' })
         } finally {
             setEntered('')
             setVerifying(false)
+            setActiveDoor(null)
+            setPulseState(null)
+            setPulseCycle(0)
         }
     }
 
@@ -55,7 +80,9 @@ export default function Panel() {
                 <Card className="border shadow-lg">
                     <CardHeader>
                         <CardTitle>PIN kód bevitel</CardTitle>
-                        <CardDescription>Adja meg a PIN kódot. Ha egyezik egy ajtó beállított PIN kódjával, az ajtó kinyílik.</CardDescription>
+                        <CardDescription>
+                            Fix PIN kódok: 1→1111, 2→2222, ... 8→8888. Érvényes kódnál az IOT management vezérli a relét.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="max-w-xs mx-auto space-y-4">
@@ -94,7 +121,7 @@ export default function Panel() {
                             </div>
 
                             <div className="text-xs text-muted-foreground text-center">
-                                A PIN kódok valós időben ellenőrződnek az adatbázissal.
+                                Adatbázis nélkül működik, a PIN ellenőrzés lokális.
                             </div>
                         </div>
                     </CardContent>
@@ -108,9 +135,11 @@ export default function Panel() {
                             Csomagautomata
                         </CardTitle>
                         <CardDescription className="text-sm">
-                            {openDoor
-                                ? `A ${openDoor}. ajtó nyitva – vegye ki a csomagot!`
-                                : 'Ajtó állapot előnézet'
+                            {activeDoor
+                                ? `${activeDoor}. relé kattintás: ${pulseCycle}/3 (${pulseState === 'on' ? 'BE' : 'KI'})`
+                                : openDoor
+                                    ? `A ${openDoor}. ajtó nyitva – vegye ki a csomagot!`
+                                    : 'Ajtó állapot előnézet'
                             }
                         </CardDescription>
                     </CardHeader>
@@ -120,14 +149,21 @@ export default function Panel() {
                             <div className="grid grid-cols-4 gap-2">
                                 {Array.from({ length: 8 }).map((_, i) => {
                                     const door = i + 1
+                                    const isActiveDoor = activeDoor === door
+                                    const isRelayOn = isActiveDoor && pulseState === 'on'
                                     const isOpen = openDoor === door
+
                                     return (
                                         <div
                                             key={door}
                                             className={`
                                                 relative aspect-[3/4] rounded border transition-all duration-500
                                                 flex flex-col items-center justify-center
-                                                ${isOpen
+                                                ${isRelayOn
+                                                    ? 'bg-amber-500/30 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.7)] scale-105'
+                                                    : isActiveDoor
+                                                        ? 'bg-amber-500/15 border-amber-500/70 shadow-[0_0_10px_rgba(251,191,36,0.35)]'
+                                                        : isOpen
                                                     ? 'bg-green-500/20 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)] scale-105'
                                                     : 'bg-gray-700 border-gray-600'
                                                 }
@@ -137,13 +173,19 @@ export default function Panel() {
                                             <div className={`
                                                 absolute top-1 left-1 w-4 h-4 rounded-full text-[10px] font-bold
                                                 flex items-center justify-center
-                                                ${isOpen ? 'bg-green-500 text-white' : 'bg-gray-600 text-gray-300'}
+                                                ${isRelayOn
+                                                    ? 'bg-amber-400 text-black'
+                                                    : isOpen
+                                                        ? 'bg-green-500 text-white'
+                                                        : 'bg-gray-600 text-gray-300'}
                                             `}>
                                                 {door}
                                             </div>
 
                                             {/* Lock icon */}
-                                            {isOpen ? (
+                                            {isRelayOn ? (
+                                                <Loader2 className="h-5 w-5 text-amber-300 animate-spin" />
+                                            ) : isOpen ? (
                                                 <LockOpen className="h-5 w-5 text-green-400 animate-bounce" />
                                             ) : (
                                                 <Lock className="h-4 w-4 text-gray-400" />
@@ -152,7 +194,9 @@ export default function Panel() {
                                             {/* Status indicator light */}
                                             <div className={`
                                                 absolute bottom-1 right-1 w-2 h-2 rounded-full transition-all duration-300
-                                                ${isOpen
+                                                ${isRelayOn
+                                                    ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]'
+                                                    : isOpen
                                                     ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
                                                     : 'bg-red-500/60'
                                                 }

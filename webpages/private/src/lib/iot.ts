@@ -11,8 +11,8 @@ const SR201_HOST = '192.168.199.250'
 const SR201_PORT = 6722
 const SR201_SWITCHES = 8
 const RELAY_CLICK_COUNT = 3
-const RELAY_ON_MS = 1000
-const RELAY_OFF_MS = 1000
+const RELAY_ON_MS = 500
+const RELAY_OFF_MS = 500
 const RELAY_BRIDGE_COMMAND_URL = 'http://api.pacex.hu/relay/command'
 
 function wait(ms: number): Promise<void> {

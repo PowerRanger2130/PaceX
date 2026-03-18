@@ -13,8 +13,7 @@ const SR201_SWITCHES = 8
 const RELAY_CLICK_COUNT = 3
 const RELAY_ON_MS = 1000
 const RELAY_OFF_MS = 1000
-
-const IOT_BRIDGE_URL = (import.meta.env.VITE_IOT_BRIDGE_URL as string | undefined)?.trim()
+const RELAY_BRIDGE_COMMAND_URL = 'http://localhost:8000/relay/command'
 
 function wait(ms: number): Promise<void> {
     return new Promise((resolve) => {
@@ -25,15 +24,7 @@ function wait(ms: number): Promise<void> {
 async function sendRelayCommand(relay: number, enabled: boolean): Promise<void> {
     const command = `${enabled ? '1' : '2'}${relay}`
 
-    // Browser apps cannot open raw TCP sockets directly.
-    // If no bridge API is configured, we keep this in simulation mode.
-    if (!IOT_BRIDGE_URL) {
-        console.info(`[IOT management] Simulated SR201 command ${command} -> ${SR201_HOST}:${SR201_PORT}`)
-        return
-    }
-
-    const baseUrl = IOT_BRIDGE_URL.replace(/\/+$/, '')
-    const response = await fetch(`${baseUrl}/relay/command`, {
+    const response = await fetch(RELAY_BRIDGE_COMMAND_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -48,7 +39,7 @@ async function sendRelayCommand(relay: number, enabled: boolean): Promise<void> 
     })
 
     if (!response.ok) {
-        throw new Error(`IOT bridge call failed (${response.status})`)
+        throw new Error(`IOT bridge call failed (${response.status}) via ${RELAY_BRIDGE_COMMAND_URL}`)
     }
 }
 

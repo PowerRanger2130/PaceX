@@ -164,8 +164,8 @@ export default function Panel() {
                                                     : isActiveDoor
                                                         ? 'bg-amber-500/15 border-amber-500/70 shadow-[0_0_10px_rgba(251,191,36,0.35)]'
                                                         : isOpen
-                                                    ? 'bg-green-500/20 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)] scale-105'
-                                                    : 'bg-gray-700 border-gray-600'
+                                                            ? 'bg-green-500/20 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)] scale-105'
+                                                            : 'bg-gray-700 border-gray-600'
                                                 }
                                             `}
                                         >
@@ -197,8 +197,8 @@ export default function Panel() {
                                                 ${isRelayOn
                                                     ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]'
                                                     : isOpen
-                                                    ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                                                    : 'bg-red-500/60'
+                                                        ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                                                        : 'bg-red-500/60'
                                                 }
                                             `} />
                                         </div>
